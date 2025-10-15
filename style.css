@@ -1,0 +1,11 @@
+.tables {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#table-income,
+#table-expanses {
+    table-layout: fixed;
+    border-collapse: collapse;
+}
