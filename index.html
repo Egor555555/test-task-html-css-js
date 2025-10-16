@@ -6,45 +6,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
     <div class="tables">
-        <table id="table-income">
-            <caption>Доходы</caption>
-            <thead>
-                <tr>
-                    <th></th>
-                    <th>Категория</th>
-                    <th>Сумма</th>
-                    <th>Дата</th>
-                </tr>
-            </thead>
-            <tbody>
-                
-            </tbody>
 
-        </table>
-        <table id="table-expanses">
-            <caption>Расходы</caption>
-            <thead>
-                <tr>
-                    <th></th>
-                    <th>Категория</th>
-                    <th>Сумма</th>
-                    <th>Дата</th>
-                </tr>
-            </thead>
-        </table>
+        <div class="table-container">
+            <div class="header-container">
+                <h2>Доходы</h2>
+                <div class="button-group">
+                    <button id="add-btn" type="button" data-table="income">Добавить</button>
+                    <button id="delete-btn" type="button" data-table="income">Удалить</button>
+                    <button id="update-btn" type="button" data-table="income">Обновить</button>
+                </div>
+            </div>
+            <table id="table-income">
+                <thead>
+                    <tr>
+                        <th><input type="radio"></th>
+                        <th>Категория</th>
+                        <th>Сумма</th>
+                        <th>Дата</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+        <div class="table-container">
+            <div class="header-container">
+                <h2>Расходы</h2>
+                <div class="button-group">
+                    <button id="add-btn" type="button" data-table="expances">Добавить</button>
+                    <button id="delete-btn" type="button" data-table="expances">Удалить</button>
+                    <button id="update-btn" type="button" data-table="expances">Обновить</button>
+                </div>
+            </div>
+            <table id="table-expanses">
+                <thead>
+                    <tr>
+                        <th><input type="radio"></th>
+                        <th>Категория</th>
+                        <th>Сумма</th>
+                        <th>Дата</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
     </div>
     <div id="main" style="width: 600px;height:400px;">
     </div>
     <label for="date-select">Выберите промежуток</label>
     <select name="dates" id="date-select">
     </select>
-    <script src="echarts.min.js"></script>
+    <div id="overlay">
+        <div class="popup">
+            <div class="popup__content">
+                <form>
+                    <div class="input-box">
+                        <label for="category">Категория</label>
+                        <input type="text" name="category" id="category">
+                    </div>
+                    <div class="input-box">
+                        <label for="summary">Сумма</label>
+                        <input type="number" name="summary" id="summary">
+                    </div>
+                    <div class="input-box">
+                        <label for="date">Дата</label>
+                        <input type="date" name="date" id="date">
+                    </div>
+                    <div class="popup__buttons">
+                        <button id="save-btn" type="button">Сохранить</button>
+                        <button id="cancel-btn" type="button">Отменить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- <script src="echarts.min.js"></script> -->
     <script src="index.js"></script>
-    <script type="text/javascript">
+    <!-- <script type="text/javascript">
         // Initialize the echarts instance based on the prepared dom
         var myChart = echarts.init(document.getElementById('main'));
 
@@ -72,7 +121,7 @@
 
         // Display the chart using the configuration items and data just specified.
         myChart.setOption(option);
-    </script>
+    </script> -->
 </body>
 
 </html>
