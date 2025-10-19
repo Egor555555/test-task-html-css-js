@@ -26,7 +26,7 @@ body {
 
 #add-btn,
 #delete-btn,
-#update-btn,
+#showDiagrams-btn,
 #save-btn,
 #cancel-btn {
     padding: 10px 20px;
@@ -48,7 +48,7 @@ body {
 }
 
 #table-income,
-#table-expanses {
+#table-expenses {
     table-layout: fixed;
     border-collapse: collapse;
     width: 100%;
@@ -123,7 +123,21 @@ th {
     padding: 0 5px;
     font-size: 14px;
 }
-
+.show__diagrams__container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+#showDiagrams-btn {
+    background-color: green;
+}
+.interval__container {
+    margin-top: 100px;
+}
+.diagrams__container {
+    display: flex;
+    justify-content: space-between;
+}
 #overlay {
     position: fixed;
     top: 0;
