@@ -5,20 +5,21 @@ let addBtnIncome = document.querySelector('#add-btn[data-table="income"]');
 let updateBtnIncome = document.querySelector('#update-btn[data-table="income"]');
 let deleteBtnIncome = document.querySelector('#delete-btn[data-table="income"]');
 
-let addBtnExpances = document.querySelector('#add-btn[data-table="expances"]');
-let updateBtnExpanses = document.querySelector('#update-btn[data-table="expances"]');
-let deleteBtnExpanses = document.querySelector('#delete-btn[data-table="expances"]');
+let addBtnExpences = document.querySelector('#add-btn[data-table="expences"]');
+let updateBtnExpenses = document.querySelector('#update-btn[data-table="expences"]');
+let deleteBtnExpenses = document.querySelector('#delete-btn[data-table="expences"]');
 
 
 let tableIncome = document.getElementById('table-income');
-let tableExpances = document.getElementById('table-expanses');
+let tableExpences = document.getElementById('table-expenses');
 let overlay = document.getElementById('overlay');
 let popup = document.querySelector('.popup');
 let masterCheckboxIncome = document.getElementById('master-checkbox-income');
-let masterCheckboxExpances = document.getElementById('master-checkbox-expances');
+let masterCheckboxExpences = document.getElementById('master-checkbox-expences');
 
 const request = indexedDB.open('finances', 1);
 let db;
+let targetTable = null;
 
 request.onupgradeneeded = function (event) {
     db = event.target.result;
@@ -50,12 +51,52 @@ request.onupgradeneeded = function (event) {
 
 request.onsuccess = function (event) {
     db = event.target.result;
+    loadIncome(tableIncome.id);
+    loadExpences(tableExpences.id);
     console.log("База данных успешно открыта.");
 };
 
 request.onerror = function (event) {
     console.error("Ошибка при открытии базы данных:", event.target.error);
 };
+
+function loadIncome(type) {
+    let store = addTransaction(type);
+
+    let request = store.getAll();
+
+    request.onsuccess = function (event) {
+        let incomes = event.target.result;
+        let tbody = document.querySelector('#table-income tbody');
+        tbody.innerHTML = '';
+        incomes.forEach(income => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td data-type="input" data-id="${income.id}"><input type="checkbox"></td>
+                <td data-field="category">${income.category}</td><td data-field="summary">${income.summary}</td>
+                <td data-field="date">${income.date}</td>`;
+            tbody.appendChild(tr);
+        });
+    };
+}
+
+function loadExpences(type) {
+    let store = addTransaction(type);
+
+    let request = store.getAll();
+
+    request.onsuccess = function (event) {
+        let expences = event.target.result;
+        let tbody = document.querySelector('#table-expenses tbody');
+        tbody.innerHTML = '';
+        expences.forEach(expence => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td data-type="input" data-id=${expence.id}><input type="checkbox"></td>
+                <td data-field="category">${expence.category}</td><td data-field="summary">${expence.summary}</td>
+                <td date-field="date">${expence.date}</td>`;
+            tbody.appendChild(tr);
+        });
+    }
+}
 
 // function addTransaction(type, category, summary, date) {
 //     const storeName = type === "table-income" ? "incomes" : "expenses";
@@ -123,45 +164,60 @@ function addData(type, category, summary, date) {
     addRequest.onerror = (event) => {
         console.error(`Ошибка при добавлении транзакции (${type}):`, event.target.error);
     };
-}
 
-function updateData(type, category, summary, date) {
-    let store = addTransaction(type);
+    if (type === 'table-income') {
+        loadIncome(type);
 
-    const newTransaction = {
-        category: category,
-        summary: summary,
-        date: date
-    }
-
-    const putRequest = store.put(newTransaction);
-
-    putRequest.onsuccess = () => {
-        console.log(`Транзакция (${type}) успешно добавлена!`);
-    };
-
-    putRequest.onerror = (event) => {
-        console.error(`Ошибка при добавлении транзакции (${type}):`, event.target.error);
+    } else {
+        loadExpences(type);
     };
 }
 
-function deleteData(type, category, summary, date) {
+function updateData(type, id, field, newValue) {
     let store = addTransaction(type);
 
-    const newTransaction = {
-        category: category,
-        summary: summary,
-        date: date
-    }
+    // const newTransaction = {
+    //     category: category,
+    //     summary: summary,
+    //     date: date
+    // }
 
-    const putRequest = store.delete(newTransaction);
+    let getReq = store.get(id);
+    getReq.onsuccess = () => {
+        let record = getReq.result;
+        if (record) {
+            record[field] = newValue;
+            let updateReq = store.put(record);
+            updateReq.onsuccess = () => {
+                console.log(`Обновлено: id=${id}, ${field} = ${newValue}`);
+            }
+            updateReq.onerror = (e) => {
+                console.error("Ошибка при обновлении:", e.target.error);
+            };
+        }
+    }
+    // const putRequest = store.put(newTransaction);
+
+    // putRequest.onsuccess = () => {
+    //     console.log(`Транзакция (${type}) успешно добавлена!`);
+    // };
+
+    // putRequest.onerror = (event) => {
+    //     console.error(`Ошибка при добавлении транзакции (${type}):`, event.target.error);
+    // };
+}
+
+function deleteData(type, id) {
+    let store = addTransaction(type);
+
+    const putRequest = store.delete(id);
 
     putRequest.onsuccess = () => {
-        console.log(`Транзакция (${type}) успешно добавлена!`);
+        console.log(`Транзакция (${type}) успешно удалена!`);
     };
 
     putRequest.onerror = (event) => {
-        console.error(`Ошибка при добавлении транзакции (${type}):`, event.target.error);
+        console.error(`Ошибка при удалении транзакции (${type}):`, event.target.error);
     };
 }
 
@@ -171,18 +227,16 @@ function deleteAllData(type) {
     store.clear();
 }
 
-let targetTable = null;
-
 addBtnIncome.addEventListener('click', () => {
     popup.style.display = 'block';
     overlay.classList.add('show');
     targetTable = tableIncome;
 });
 
-addBtnExpances.addEventListener('click', () => {
+addBtnExpences.addEventListener('click', () => {
     popup.style.display = 'block';
     overlay.classList.add('show');
-    targetTable = tableExpances;
+    targetTable = tableExpences;
 });
 
 masterCheckboxIncome.addEventListener('change', function () {
@@ -194,8 +248,8 @@ masterCheckboxIncome.addEventListener('change', function () {
     });
 });
 
-masterCheckboxExpances.addEventListener('change', function () {
-    targetTable = tableExpances;
+masterCheckboxExpences.addEventListener('change', function () {
+    targetTable = tableExpences;
     const isChecked = this.checked;
     const allCheckboxes = targetTable.tBodies[0].querySelectorAll('input[type="checkbox"]');
     allCheckboxes.forEach(checkbox => {
@@ -213,11 +267,11 @@ deleteBtnIncome.addEventListener('click', () => {
         targetTable.tBodies[0].innerHTML = '';
         masterCheckboxIncome.checked = false;
     } else {
-        deleteData(rows[1], rows[2], rows[3]);
         rows.forEach(row => {
             let checkbox = row.querySelector('input');
 
             if (checkbox && checkbox.checked) {
+                deleteData(targetTable.id, Number(row.cells[0].dataset.id));
                 row.remove();
             }
 
@@ -226,20 +280,21 @@ deleteBtnIncome.addEventListener('click', () => {
     targetTable = null;
 });
 
-deleteBtnExpanses.addEventListener('click', () => {
-    targetTable = tableExpances;
+deleteBtnExpenses.addEventListener('click', () => {
+    targetTable = tableExpences;
     let rows = targetTable.querySelectorAll('tbody > tr');
 
-    if (masterCheckboxExpances.checked) {
+    if (masterCheckboxExpences.checked) {
         // console.log(checkboxes);
         deleteAllData(targetTable.id);
         targetTable.tBodies[0].innerHTML = '';
-        masterCheckboxExpances.checked = false;
+        masterCheckboxExpences.checked = false;
     } else {
         rows.forEach(row => {
             let checkbox = row.querySelector('input');
 
             if (checkbox && checkbox.checked) {
+                deleteData(targetTable.id, Number(row.cells[0].dataset.id));
                 row.remove();
             }
         });
@@ -257,10 +312,10 @@ saveBtn.addEventListener('click', () => {
         return;
     }
 
-    let tr = document.createElement('tr');
-    tr.innerHTML = `<td data-type="input"><input type="checkbox"></td><td data-type="text">${category.value}</td>
-        <td data-type="number">${summary.value}</td><td data-type="date">${date.value}</td>`;
-    targetTable.tBodies[0].append(tr);
+    // let tr = document.createElement('tr');
+    // tr.innerHTML = `<td data-type="input"><input type="checkbox"></td><td data-type="text">${category.value}</td>
+    //     <td data-type="number">${summary.value}</td><td data-type="date">${date.value}</td>`;
+    // targetTable.tBodies[0].append(tr);
 
     addData(targetTable.id, category.value, summary.value, date.value);
 
@@ -296,8 +351,12 @@ tableIncome.addEventListener('click', function (event) {
 
         input.addEventListener('blur', function () {
 
-            const updateRequest = objectStore.put()
+            // const updateRequest = objectStore.put()
             cell.innerHTML = input.value;
+            let field = cell.dataset.field;
+            let id = parseInt(cell.closest('tr').cells[0].dataset.id, 10);
+
+            updateData(tableIncome.id, id, field, input.value);
         });
         input.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
@@ -307,7 +366,7 @@ tableIncome.addEventListener('click', function (event) {
     }
 });
 
-tableExpances.addEventListener('click', function (event) {
+tableExpences.addEventListener('click', function (event) {
     let cell = event.target;
 
     if (cell.tagName === 'TD' && !cell.querySelector('input')) {
@@ -324,6 +383,11 @@ tableExpances.addEventListener('click', function (event) {
 
         input.addEventListener('blur', function () {
             cell.innerHTML = input.value;
+            let field = cell.dataset.field;
+            let id = parseInt(cell.closest('tr').cells[0].dataset.id, 10);
+            console.log(id);
+
+            updateData(tableExpences.id, id, field, input.value);
         });
         input.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
