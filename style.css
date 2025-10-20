@@ -28,7 +28,8 @@ body {
 #delete-btn,
 #showDiagrams-btn,
 #save-btn,
-#cancel-btn {
+#cancel-btn,
+#updateCharts {
     padding: 10px 20px;
     border-radius: 10px;
     border: none;
@@ -99,12 +100,14 @@ th {
 #cancel-btn {
     background-color: rgb(221, 88, 88);
 }
-
+#updateCharts {
+    background-color: green;
+}
 .input-box {
     position: relative;
 }
 
-.input-box > input {
+.input-box>input {
     background: #fff;
     padding: 10px;
     /* закруглим края у поля ввода */
@@ -114,7 +117,7 @@ th {
     margin: 10px 0px;
 }
 
-.input-box > label {
+.input-box>label {
     position: absolute;
     /* смещение относительно родительского элемента 10px вверх от верхнего края и   10px влево */
     top: 0px;
@@ -123,21 +126,31 @@ th {
     padding: 0 5px;
     font-size: 14px;
 }
+
 .show__diagrams__container {
     display: flex;
     justify-content: center;
     gap: 20px;
 }
+
 #showDiagrams-btn {
     background-color: green;
 }
+
 .interval__container {
-    margin-top: 100px;
+    margin-top: 120px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
 }
+
 .diagrams__container {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
 }
+
 #overlay {
     position: fixed;
     top: 0;
