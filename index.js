@@ -1,3 +1,8 @@
+// import autocolors from 'chartjs-plugin-autocolors';
+
+// const autocolors = window['chartjs-plugin-autocolors'];
+// Chart.register(autocolors);
+
 let cancelBtn = document.getElementById('cancel-btn');
 let saveBtn = document.getElementById('save-btn');
 
@@ -18,8 +23,18 @@ let masterCheckboxIncome = document.getElementById('master-checkbox-income');
 let masterCheckboxExpences = document.getElementById('master-checkbox-expences');
 
 const request = indexedDB.open('finances', 1);
+
 let db;
 let targetTable = null;
+
+let labelsIncome = [];
+let categoriesIncome = [];
+let summariesIncome = [];
+let dateIncome = [];
+
+let labelsExpances = [];
+let categoriesExpances = [];
+let summariesExpances = [];
 
 request.onupgradeneeded = function (event) {
     db = event.target.result;
@@ -53,6 +68,7 @@ request.onsuccess = function (event) {
     db = event.target.result;
     loadIncome(tableIncome.id);
     loadExpences(tableExpences.id);
+    // loadDiagrams(tableIncome.id);
     console.log("База данных успешно открыта.");
 };
 
@@ -75,8 +91,66 @@ function loadIncome(type) {
                 <td data-field="category">${income.category}</td><td data-field="summary">${income.summary}</td>
                 <td data-field="date">${income.date}</td>`;
             tbody.appendChild(tr);
+            labelsIncome.push(income.category);
+            summariesIncome.push(Number(income.summary));
+            dateIncome.push(income.date);
+        });
+        const ctx = document.getElementById('incomeChart').getContext('2d');
+        const myChart = new Chart(ctx, {
+            // plugins: [
+            //     autocolors
+            // ],
+            type: 'doughnut',
+            data: {
+                labels: labelsIncome,
+                datasets: [{
+                    label: 'Сумма',
+                    data: summariesIncome,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                },
+                // {
+                //     label: 'Дата',
+                //     data: dateIncome,
+                //     backgroundColor: [
+                //         'rgba(255, 99, 132, 0.2)',
+                //         'rgba(54, 162, 235, 0.2)',
+                //         'rgba(255, 206, 86, 0.2)',
+                //         'rgba(75, 192, 192, 0.2)',
+                //         'rgba(153, 102, 255, 0.2)',
+                //         'rgba(255, 159, 64, 0.2)'
+                //     ],
+                //     borderColor: [
+                //         'rgba(255, 99, 132, 1)',
+                //         'rgba(54, 162, 235, 1)',
+                //         'rgba(255, 206, 86, 1)',
+                //         'rgba(75, 192, 192, 1)',
+                //         'rgba(153, 102, 255, 1)',
+                //         'rgba(255, 159, 64, 1)'
+                //     ],
+                //     borderWidth: 1
+                // }
+                ]
+            },
+            
         });
     };
+
 }
 
 function loadExpences(type) {
@@ -94,9 +168,57 @@ function loadExpences(type) {
                 <td data-field="category">${expence.category}</td><td data-field="summary">${expence.summary}</td>
                 <td date-field="date">${expence.date}</td>`;
             tbody.appendChild(tr);
+            labelsExpances.push(expence.category);
+            summariesExpances.push(Number(expence.summary));
+        });
+        const ctx = document.getElementById('expenseChart').getContext('2d');
+        const myChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labelsExpances,
+                datasets: [{
+                    label: 'Сумма',
+                    data: summariesExpances,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    // borderColor: [
+                    //     'rgba(255, 99, 132, 1)',
+                    //     'rgba(54, 162, 235, 1)',
+                    //     'rgba(255, 206, 86, 1)',
+                    //     'rgba(75, 192, 192, 1)',
+                    //     'rgba(153, 102, 255, 1)',
+                    //     'rgba(255, 159, 64, 1)'
+                    // ],
+                    borderWidth: 1
+                }]
+            },
+
         });
     }
 }
+
+// function loadDiagrams(type) {
+//     let store = addTransaction(type);
+
+//     let request = store.getAll();
+
+//     request.onsuccess = function (event) {
+//         let datas = event.target.result;
+//         datas.forEach(data => {
+//             labelsIncome.push(data.category);
+//             summariesIncome.push(Number(data.summary));
+//         })
+//     }
+
+//     console.log(labelsIncome);
+//     console.log(summariesIncome);
+// }
 
 // function addTransaction(type, category, summary, date) {
 //     const storeName = type === "table-income" ? "incomes" : "expenses";
@@ -165,12 +287,12 @@ function addData(type, category, summary, date) {
         console.error(`Ошибка при добавлении транзакции (${type}):`, event.target.error);
     };
 
-    if (type === 'table-income') {
-        loadIncome(type);
+    // if (type === 'table-income') {
+    //     loadIncome(type);
 
-    } else {
-        loadExpences(type);
-    };
+    // } else {
+    //     loadExpences(type);
+    // };
 }
 
 function updateData(type, id, field, newValue) {
@@ -312,14 +434,12 @@ saveBtn.addEventListener('click', () => {
         return;
     }
 
-    // let tr = document.createElement('tr');
-    // tr.innerHTML = `<td data-type="input"><input type="checkbox"></td><td data-type="text">${category.value}</td>
-    //     <td data-type="number">${summary.value}</td><td data-type="date">${date.value}</td>`;
-    // targetTable.tBodies[0].append(tr);
+    let tr = document.createElement('tr');
+    tr.innerHTML = `<td data-type="input"><input type="checkbox"></td><td data-type="text">${category.value}</td>
+        <td data-type="number">${summary.value}</td><td data-type="date">${date.value}</td>`;
+    targetTable.tBodies[0].append(tr);
 
     addData(targetTable.id, category.value, summary.value, date.value);
-
-    console.log(targetTable.id);
 
     category.value = '';
     summary.value = '';
@@ -396,3 +516,4 @@ tableExpences.addEventListener('click', function (event) {
         })
     }
 });
+
