@@ -74,17 +74,15 @@
     <div class="interval__container">
         <label>Дата с: <input type="date" id="startDate"></label>
         <label>по: <input type="date" id="endDate"></label>
-        <button onclick="updateCharts()">Применить</button>
+        <button onclick="updateCharts()" id="updateCharts">Применить</button>
     </div>
 
     <div class="diagrams__container">
-        <h2>Доходы</h2>
-        <div style="width: 50%;">
+        <div style="width: 40%; height: 500px;">
             <canvas id="incomeChart"></canvas>
         </div>
 
-        <h2>Расходы</h2>
-        <div style="width: 50%">
+        <div style="width: 40%; height: 500px;">
             <canvas id="expenseChart"></canvas>
         </div>
     </div>
@@ -113,8 +111,8 @@
         </div>
     </div>
     <!-- <script src="echarts.min.js"></script> -->
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors"></script>
     <script src="index.js"></script>
     <script>
         // const ctx = document.getElementById('myChart').getContext('2d');
