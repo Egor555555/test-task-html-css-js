@@ -1,6 +1,91 @@
 // import autocolors from 'chartjs-plugin-autocolors';
 
+// Chart.register({
+//     id: 'doughnut-centertext',
+//     beforeDraw: function (chart) {
+//         if (chart.config.options.elements.center) {
+//             // Get ctx from string
+//             var ctx = chart.ctx;
+
+//             // Get options from the center object in options
+//             var centerConfig = chart.config.options.elements.center;
+//             var fontStyle = centerConfig.fontStyle || 'Arial';
+//             var txt = centerConfig.text;
+//             var color = centerConfig.color || '#000';
+//             var maxFontSize = centerConfig.maxFontSize || 75;
+//             var sidePadding = centerConfig.sidePadding || 20;
+//             var sidePaddingCalculated = (sidePadding / 100) * (chart._metasets[chart._metasets.length - 1].data[0].innerRadius * 2)
+//             // Start with a base font of 30px
+//             ctx.font = "30px " + fontStyle;
+
+//             // Get the width of the string and also the width of the element minus 10 to give it 5px side padding
+//             var stringWidth = ctx.measureText(txt).width;
+//             var elementWidth = (chart._metasets[chart._metasets.length - 1].data[0].innerRadius * 2) - sidePaddingCalculated;
+
+//             // Find out how much the font can grow in width.
+//             var widthRatio = elementWidth / stringWidth;
+//             var newFontSize = Math.floor(30 * widthRatio);
+//             var elementHeight = (chart._metasets[chart._metasets.length - 1].data[0].innerRadius * 2);
+
+//             // Pick a new font size so it will not be larger than the height of label.
+//             var fontSizeToUse = Math.min(newFontSize, elementHeight, maxFontSize);
+//             var minFontSize = centerConfig.minFontSize;
+//             var lineHeight = centerConfig.lineHeight || 25;
+//             var wrapText = false;
+
+//             if (minFontSize === undefined) {
+//                 minFontSize = 20;
+//             }
+
+//             if (minFontSize && fontSizeToUse < minFontSize) {
+//                 fontSizeToUse = minFontSize;
+//                 wrapText = true;
+//             }
+
+//             // Set font settings to draw it correctly.
+//             ctx.textAlign = 'center';
+//             ctx.textBaseline = 'middle';
+//             var centerX = ((chart.chartArea.left + chart.chartArea.right) / 2);
+//             var centerY = ((chart.chartArea.top + chart.chartArea.bottom) / 2);
+//             ctx.font = fontSizeToUse + "px " + fontStyle;
+//             ctx.fillStyle = color;
+
+//             if (!wrapText) {
+//                 ctx.fillText(txt, centerX, centerY);
+//                 return;
+//             }
+
+//             var words = txt.split(' ');
+//             var line = '';
+//             var lines = [];
+
+//             // Break words up into multiple lines if necessary
+//             for (var n = 0; n < words.length; n++) {
+//                 var testLine = line + words[n] + ' ';
+//                 var metrics = ctx.measureText(testLine);
+//                 var testWidth = metrics.width;
+//                 if (testWidth > elementWidth && n > 0) {
+//                     lines.push(line);
+//                     line = words[n] + ' ';
+//                 } else {
+//                     line = testLine;
+//                 }
+//             }
+
+//             // Move the center up depending on line height and number of lines
+//             centerY -= (lines.length / 2) * lineHeight;
+
+//             for (var n = 0; n < lines.length; n++) {
+//                 ctx.fillText(lines[n], centerX, centerY);
+//                 centerY += lineHeight;
+//             }
+//             //Draw text in center
+//             ctx.fillText(line, centerX, centerY);
+//         }
+//     }
+// });
 Chart.register(window['chartjs-plugin-autocolors']);
+
 const autocolors = window['chartjs-plugin-autocolors'];
 
 let cancelBtn = document.getElementById('cancel-btn');
@@ -41,6 +126,8 @@ const expenseCtx = document.getElementById('expenseChart').getContext('2d');
 
 let incomess;
 let expencess;
+let totalSumIncome;
+let totalSumExpences;
 
 request.onupgradeneeded = function (event) {
     db = event.target.result;
@@ -74,7 +161,6 @@ request.onsuccess = function (event) {
     db = event.target.result;
     loadIncome(tableIncome.id);
     loadExpences(tableExpences.id);
-    // loadDiagrams(tableIncome.id);
     console.log("База данных успешно открыта.");
 };
 
@@ -84,6 +170,7 @@ request.onerror = function (event) {
 
 function loadIncome(type) {
     incomess = [];
+    totalSum = 0;
     let store = addTransaction(type);
 
     let request = store.getAll();
@@ -95,13 +182,14 @@ function loadIncome(type) {
         incomes.forEach(income => {
             const tr = document.createElement('tr');
             tr.innerHTML = `<td data-type="input" data-id="${income.id}"><input type="checkbox"></td>
-                <td data-field="category">${income.category}</td><td data-field="summary">${income.summary}</td>
-                <td data-field="date">${income.date}</td>`;
+                <td data-field="category" data-type="text">${income.category}</td><td data-field="summary" data-type=
+                "number">${income.summary}</td><td data-field="date" data-type="date">${income.date}</td>`;
             tbody.appendChild(tr);
             // labelsIncome.push(income.category);
             // summariesIncome.push(Number(income.summary));
             // dateIncome.push(income.date);
             incomess.push({ category: income.category, summary: Number(income.summary), date: income.date });
+            totalSum += income.summary;
         });
         // const myChart = new Chart(incomeCtx, {
         //     // plugins: [
@@ -162,6 +250,7 @@ function loadIncome(type) {
 
 function loadExpences(type) {
     expencess = [];
+    totalSumExpences = 0;
 
     let store = addTransaction(type);
 
@@ -174,12 +263,13 @@ function loadExpences(type) {
         expences.forEach(expence => {
             const tr = document.createElement('tr');
             tr.innerHTML = `<td data-type="input" data-id=${expence.id}><input type="checkbox"></td>
-                <td data-field="category">${expence.category}</td><td data-field="summary">${expence.summary}</td>
-                <td date-field="date">${expence.date}</td>`;
+                <td data-field="category" data-type="text">${expence.category}</td><td data-field="summary" data-type="number">
+                ${expence.summary}</td><td date-field="date" data-type="date">${expence.date}</td>`;
             tbody.appendChild(tr);
             // labelsExpances.push(expence.category);
             // summariesExpances.push(Number(expence.summary));
             expencess.push({ category: expence.category, summary: Number(expence.summary), date: expence.date });
+            totalSumExpences += expence.summary;
         });
         // const myChart = new Chart(expenseCtx, {
         //     type: 'doughnut',
@@ -366,6 +456,9 @@ function deleteAllData(type) {
     let store = addTransaction(type);
 
     store.clear();
+    loadIncome('table-income');
+    loadExpences('table-expenses');
+    updateCharts();
 }
 
 addBtnIncome.addEventListener('click', () => {
@@ -404,16 +497,22 @@ deleteBtnIncome.addEventListener('click', () => {
 
     if (masterCheckboxIncome.checked) {
         // console.log(checkboxes);
-        deleteAllData(targetTable.id);
-        targetTable.tBodies[0].innerHTML = '';
-        masterCheckboxIncome.checked = false;
+        let isDeleteAll = confirm('Вы точно хотите удалить всё?');
+        if (isDeleteAll) {
+            deleteAllData(targetTable.id);
+            targetTable.tBodies[0].innerHTML = '';
+            masterCheckboxIncome.checked = false;
+        }
     } else {
         rows.forEach(row => {
             let checkbox = row.querySelector('input');
 
             if (checkbox && checkbox.checked) {
-                deleteData(targetTable.id, Number(row.cells[0].dataset.id));
-                row.remove();
+                let isDeleteRow = confirm('Вы точно хотите удалить эту строку?');
+                if (isDeleteRow) {
+                    deleteData(targetTable.id, Number(row.cells[0].dataset.id));
+                    row.remove();
+                }
             }
 
         });
@@ -427,16 +526,23 @@ deleteBtnExpenses.addEventListener('click', () => {
 
     if (masterCheckboxExpences.checked) {
         // console.log(checkboxes);
-        deleteAllData(targetTable.id);
-        targetTable.tBodies[0].innerHTML = '';
-        masterCheckboxExpences.checked = false;
+        let isDeleteAll = confirm('Вы точно хотите удалить всё?');
+        if (isDeleteAll) {
+            deleteAllData(targetTable.id);
+            targetTable.tBodies[0].innerHTML = '';
+            masterCheckboxExpences.checked = false;
+        }
+
     } else {
         rows.forEach(row => {
             let checkbox = row.querySelector('input');
 
             if (checkbox && checkbox.checked) {
-                deleteData(targetTable.id, Number(row.cells[0].dataset.id));
-                row.remove();
+                let isDeleteRow = confirm('Вы точно хотите удалить эту строку?');
+                if (isDeleteRow) {
+                    deleteData(targetTable.id, Number(row.cells[0].dataset.id));
+                    row.remove();
+                }
             }
         });
     }
@@ -475,64 +581,135 @@ cancelBtn.addEventListener('click', () => {
 
 tableIncome.addEventListener('click', function (event) {
     let cell = event.target;
-
-    if (cell.tagName === 'TD' && !cell.querySelector('input')) {
+    if (cell.tagName === 'TD' && !cell.querySelector('input') && cell.dataset.type !== 'input') {
         let originalValue = cell.innerText;
         let dataType = cell.dataset.type;
-
         let input = document.createElement('input');
-        input.type = dataType;
+        input.classList.add('edit__cell');
+        input.type = 'text'; // Всегда используйте type="text", а не dataType, для более гибкой обработки
         input.value = originalValue;
-
         cell.innerText = '';
         cell.appendChild(input);
         input.focus();
 
-        input.addEventListener('blur', function () {
+        function validateAndSave() {
+            let newValue = input.value.trim();
 
-            // const updateRequest = objectStore.put()
-            cell.innerHTML = input.value;
-            let field = cell.dataset.field;
-            let id = parseInt(cell.closest('tr').cells[0].dataset.id, 10);
+            // Проверка валидности
+            let isValid = true;
 
-            updateData(tableIncome.id, id, field, input.value);
-        });
+            if (dataType === 'number') {
+                // Проверяем, является ли значение числом
+                if (isNaN(newValue) || newValue === '') {
+                    isValid = false;
+                    alert('Введите корректное число.');
+                }
+            } else if (dataType === 'date') {
+                // Проверяем, является ли значение датой
+                let date = new Date(newValue);
+                if (isNaN(date.getTime()) || newValue === '') { // .getTime() возвращает NaN для неверной даты
+                    isValid = false;
+                    alert('Введите корректную дату (например, ГГГГ-ММ-ДД).');
+                }
+            }
+
+            if (isValid) {
+                cell.innerHTML = newValue;
+                let field = cell.dataset.field;
+                let id = parseInt(cell.closest('tr').cells[0].dataset.id, 10);
+                updateData(tableIncome.id, id, field, newValue);
+            }
+        }
+
+        input.addEventListener('blur', validateAndSave);
+
         input.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
-                input.blur();
+                validateAndSave();
             }
-        })
+        });
     }
 });
 
 tableExpences.addEventListener('click', function (event) {
-    let cell = event.target;
+    // let cell = event.target;
 
-    if (cell.tagName === 'TD' && !cell.querySelector('input')) {
+    // if (cell.tagName === 'TD' && !cell.querySelector('input')) {
+    //     let originalValue = cell.innerText;
+    //     let dataType = cell.dataset.type;
+
+    //     let input = document.createElement('input');
+    //     input.className = 'edit__cell';
+    //     input.type = dataType;
+    //     input.value = originalValue;
+
+    //     cell.innerText = '';
+    //     cell.appendChild(input);
+    //     input.focus();
+
+    //     input.addEventListener('blur', function () {
+    //         cell.innerHTML = input.value;
+    //         let field = cell.dataset.field;
+    //         let id = parseInt(cell.closest('tr').cells[0].dataset.id, 10);
+    //         console.log(id);
+
+    //         updateData(tableExpences.id, id, field, input.value);
+    //     });
+    //     input.addEventListener('keypress', function (e) {
+    //         if (e.key === 'Enter') {
+    //             input.blur();
+    //         }
+    //     })
+    // }
+
+    let cell = event.target;
+    if (cell.tagName === 'TD' && !cell.querySelector('input') && cell.dataset.type !== 'input') {
         let originalValue = cell.innerText;
         let dataType = cell.dataset.type;
-
         let input = document.createElement('input');
-        input.type = dataType;
+        input.classList.add('edit__cell');
+        input.type = 'text'; // Всегда используйте type="text", а не dataType, для более гибкой обработки
         input.value = originalValue;
-
         cell.innerText = '';
         cell.appendChild(input);
         input.focus();
 
-        input.addEventListener('blur', function () {
-            cell.innerHTML = input.value;
-            let field = cell.dataset.field;
-            let id = parseInt(cell.closest('tr').cells[0].dataset.id, 10);
-            console.log(id);
+        function validateAndSave() {
+            let newValue = input.value.trim();
 
-            updateData(tableExpences.id, id, field, input.value);
-        });
+            // Проверка валидности
+            let isValid = true;
+
+            if (dataType === 'number') {
+                // Проверяем, является ли значение числом
+                if (isNaN(newValue) || newValue === '') {
+                    isValid = false;
+                    alert('Введите корректное число.');
+                }
+            } else if (dataType === 'date') {
+                // Проверяем, является ли значение датой
+                let date = new Date(newValue);
+                if (isNaN(date.getTime()) || newValue === '') { // .getTime() возвращает NaN для неверной даты
+                    isValid = false;
+                    alert('Введите корректную дату (например, ГГГГ-ММ-ДД).');
+                }
+            }
+
+            if (isValid) {
+                cell.innerHTML = newValue;
+                let field = cell.dataset.field;
+                let id = parseInt(cell.closest('tr').cells[0].dataset.id, 10);
+                updateData(tableExpences.id, id, field, newValue);
+            }
+        }
+
+        input.addEventListener('blur', validateAndSave);
+
         input.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
-                input.blur();
+                validateAndSave();
             }
-        })
+        });
     }
 });
 
@@ -552,11 +729,20 @@ function aggregateByCategory(data) {
     return result;
 }
 
-
 let incomeChart = new Chart(incomeCtx, {
     type: 'doughnut',
     data: { labels: [], datasets: [{ label: 'Доходы', data: [], hoverOffset: 4 }] },
     options: {
+        elements: {
+            center: {
+                text: 'Red is 2/3 of the total numbers',
+                color: '#FF6384', // Default is #000000
+                fontStyle: 'Arial', // Default is Arial
+                sidePadding: 20, // Default is 20 (as a percentage)
+                minFontSize: 25, // Default is 20 (in px), set to false and text will not wrap.
+                lineHeight: 25 // Default is 25 (in px), used for when text wraps
+            }
+        },
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -575,21 +761,44 @@ let incomeChart = new Chart(incomeCtx, {
                 },
                 align: 'center'
             },
+            datalabels: {
+                formatter: (value, context) => {
+                    let percentage = (value / context.chart._metasets
+                    [context.datasetIndex].total * 100)
+                        .toFixed() + '%';
+                    return percentage + '\n' + value;
+                },
+                color: '#fff',
+                font: {
+                    size: 14,
+                }
+            }
         }
-    }
+    },
+    plugins: [ChartDataLabels]
 });
 
 let expenseChart = new Chart(expenseCtx, {
     type: 'doughnut',
     data: { labels: [], datasets: [{ label: 'Расходы', data: [] }] },
     options: {
+        elements: {
+            center: {
+                text: `Всего ${totalSumExpences}`,
+                color: '#FF6384', // Default is #000000
+                fontStyle: 'Arial', // Default is Arial
+                sidePadding: 20, // Default is 20 (as a percentage)
+                minFontSize: 20, // Default is 20 (in px), set to false and text will not wrap.
+                lineHeight: 25 // Default is 25 (in px), used for when text wraps
+            }
+        },
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
             autocolors: { mode: 'data' },
             title: {
                 display: true,
-                text: 'Расходы', 
+                text: 'Расходы',
                 font: {
                     size: 20,
                     weight: 'bold'
@@ -601,9 +810,23 @@ let expenseChart = new Chart(expenseCtx, {
                 },
                 align: 'center'
             },
+            datalabels: {
+                formatter: (value, context) => {
+                    let percentage = (value / context.chart._metasets
+                    [context.datasetIndex].total * 100)
+                        .toFixed() + '%';
+                    return percentage + '\n' + value;
+                },
+                color: '#fff',
+                font: {
+                    size: 14,
+                }
+            }
         }
-    }
+    },
+    plugins: [ChartDataLabels]
 });
+
 
 function updateCharts() {
 
