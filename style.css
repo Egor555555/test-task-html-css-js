@@ -63,8 +63,12 @@ th {
 td,
 th {
     border: 1px solid #333;
-    padding: 5px 10px;
+    padding: 15px 10px;
     text-align: center;
+}
+td{
+    position: relative;
+    /* width: 100%; */
 }
 
 .popup {
@@ -101,7 +105,7 @@ th {
     background-color: rgb(221, 88, 88);
 }
 #updateCharts {
-    background-color: green;
+    background-color: rgb(51, 201, 51);
 }
 .input-box {
     position: relative;
@@ -164,4 +168,14 @@ th {
 
 #overlay.show {
     display: block;
+}
+
+.edit__cell {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    outline: none;
+    text-align: center;
 }
