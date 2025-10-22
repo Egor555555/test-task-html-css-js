@@ -1,5 +1,6 @@
 body {
     font-family: "Roboto", sans-serif;
+    box-sizing: border-box;
 }
 
 .tables {
@@ -9,7 +10,7 @@ body {
 }
 
 .table-container {
-    width: 40%;
+    width: 45%;
 }
 
 .header-container {
@@ -17,6 +18,11 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 5px;
+}
+
+.table-scroll {
+    max-height: 300px;
+    overflow-y: auto;
 }
 
 .button-group {
@@ -55,10 +61,18 @@ body {
     width: 100%;
 }
 
-th {
+thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
     background-color: rgb(0, 119, 255);
     font-weight: 400;
 }
+
+/* th {
+    background-color: rgb(0, 119, 255);
+    font-weight: 400;
+} */
 
 td,
 th {
@@ -66,8 +80,10 @@ th {
     padding: 15px 10px;
     text-align: center;
 }
-td{
+
+td {
     position: relative;
+    overflow: hidden;
     /* width: 100%; */
 }
 
@@ -104,9 +120,11 @@ td{
 #cancel-btn {
     background-color: rgb(221, 88, 88);
 }
+
 #updateCharts {
     background-color: rgb(51, 201, 51);
 }
+
 .input-box {
     position: relative;
 }
@@ -178,4 +196,17 @@ td{
     height: 100%;
     outline: none;
     text-align: center;
+}
+
+/* Стили для скролла */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
 }
