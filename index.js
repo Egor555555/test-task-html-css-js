@@ -4,10 +4,9 @@ Chart.register({
     id: 'doughnut-centertext',
     beforeDraw: function (chart) {
         const centerConfig = chart.config.options.elements?.center;
-        if (!centerConfig) return; // нет настроек — ничего не рисуем
+        if (!centerConfig) return;
 
         const metasets = chart._metasets;
-        // Проверяем, есть ли вообще данные
         if (!metasets || metasets.length === 0 || !metasets[metasets.length - 1].data.length) return;
 
         const ctx = chart.ctx;
@@ -51,7 +50,6 @@ Chart.register({
             return;
         }
 
-        // Перенос текста
         const words = txt.split(' ');
         let line = '';
         const lines = [];
@@ -99,34 +97,23 @@ let popup = document.querySelector('.popup');
 let masterCheckboxIncome = document.getElementById('master-checkbox-income');
 let masterCheckboxExpences = document.getElementById('master-checkbox-expences');
 
-const request = indexedDB.open('finances', 1);
-
 let db;
 let targetTable = null;
 
-// let labelsIncome = [];
-// let categoriesIncome = [];
-// let summariesIncome = [];
-// let dateIncome = [];
+let incomeCtx = document.getElementById('incomeChart').getContext('2d');
+let expenseCtx = document.getElementById('expenseChart').getContext('2d');
 
-// let labelsExpances = [];
-// let categoriesExpances = [];
-// let summariesExpances = [];
+let incomesArr;
+let expencesArr;
 
-const incomeCtx = document.getElementById('incomeChart').getContext('2d');
-const expenseCtx = document.getElementById('expenseChart').getContext('2d');
-
-let incomess;
-let expencess;
-let totalSumIncome;
-let totalSumExpences;
+let request = indexedDB.open('finances', 1);
 
 request.onupgradeneeded = function (event) {
     db = event.target.result;
 
     // Создаём хранилище объектов для доходов
     if (!db.objectStoreNames.contains("incomes")) {
-        const incomesStore = db.createObjectStore("incomes", {
+        let incomesStore = db.createObjectStore("incomes", {
             keyPath: "id", // Уникальный идентификатор
             autoIncrement: true // Автоматическая генерация ключа
         });
@@ -138,7 +125,7 @@ request.onupgradeneeded = function (event) {
 
     // Создаём хранилище объектов для расходов
     if (!db.objectStoreNames.contains("expenses")) {
-        const expensesStore = db.createObjectStore("expenses", {
+        let expensesStore = db.createObjectStore("expenses", {
             keyPath: "id",
             autoIncrement: true
         });
@@ -161,8 +148,8 @@ request.onerror = function (event) {
 };
 
 function loadIncome(type) {
-    incomess = [];
-    totalSumIncome = 0;
+    incomesArr = [];
+
     let store = addTransaction(type);
 
     let request = store.getAll();
@@ -172,76 +159,22 @@ function loadIncome(type) {
         let tbody = document.querySelector('#table-income tbody');
         tbody.innerHTML = '';
         incomes.forEach(income => {
-            const tr = document.createElement('tr');
+            let tr = document.createElement('tr');
             tr.innerHTML = `<td data-type="input" data-id="${income.id}"><input type="checkbox"></td>
                 <td data-field="category" data-type="text">${income.category}</td><td data-field="summary" data-type=
                 "number">${income.summary}</td><td data-field="date" data-type="date">${income.date}</td>`;
             tbody.appendChild(tr);
-            // labelsIncome.push(income.category);
-            // summariesIncome.push(Number(income.summary));
-            // dateIncome.push(income.date);
-            incomess.push({ category: income.category, summary: Number(income.summary), date: income.date });
-            totalSumIncome += Number(income.summary);
+            incomesArr.push({ category: income.category, summary: Number(income.summary), date: income.date });
         });
-        // const myChart = new Chart(incomeCtx, {
-        //     // plugins: [
-        //     //     autocolors
-        //     // ],
-        //     type: 'doughnut',
-        //     data: {
-        //         labels: labelsIncome,
-        //         datasets: [{
-        //             label: 'Сумма',
-        //             data: summariesIncome,
-        //             backgroundColor: [
-        //                 'rgba(255, 99, 132, 0.2)',
-        //                 'rgba(54, 162, 235, 0.2)',
-        //                 'rgba(255, 206, 86, 0.2)',
-        //                 'rgba(75, 192, 192, 0.2)',
-        //                 'rgba(153, 102, 255, 0.2)',
-        //                 'rgba(255, 159, 64, 0.2)'
-        //             ],
-        //             borderColor: [
-        //                 'rgba(255, 99, 132, 1)',
-        //                 'rgba(54, 162, 235, 1)',
-        //                 'rgba(255, 206, 86, 1)',
-        //                 'rgba(75, 192, 192, 1)',
-        //                 'rgba(153, 102, 255, 1)',
-        //                 'rgba(255, 159, 64, 1)'
-        //             ],
-        //             borderWidth: 1
-        //         },
-        //             // {
-        //             //     label: 'Дата',
-        //             //     data: dateIncome,
-        //             //     backgroundColor: [
-        //             //         'rgba(255, 99, 132, 0.2)',
-        //             //         'rgba(54, 162, 235, 0.2)',
-        //             //         'rgba(255, 206, 86, 0.2)',
-        //             //         'rgba(75, 192, 192, 0.2)',
-        //             //         'rgba(153, 102, 255, 0.2)',
-        //             //         'rgba(255, 159, 64, 0.2)'
-        //             //     ],
-        //             //     borderColor: [
-        //             //         'rgba(255, 99, 132, 1)',
-        //             //         'rgba(54, 162, 235, 1)',
-        //             //         'rgba(255, 206, 86, 1)',
-        //             //         'rgba(75, 192, 192, 1)',
-        //             //         'rgba(153, 102, 255, 1)',
-        //             //         'rgba(255, 159, 64, 1)'
-        //             //     ],
-        //             //     borderWidth: 1
-        //             // }
-        //         ]
-        //     },
-
-        // });
+        console.log('Данные загружены в таблицу доходов');
     };
-
+    request.onerror = function () {
+        console.log('Не удалось загрузить данные в таблицу доходов', request.error);
+    }
 }
 
 function loadExpences(type) {
-    expencess = [];
+    expencesArr = [];
 
     let store = addTransaction(type);
 
@@ -252,123 +185,40 @@ function loadExpences(type) {
         let tbody = document.querySelector('#table-expenses tbody');
         tbody.innerHTML = '';
         expences.forEach(expence => {
-            const tr = document.createElement('tr');
+            let tr = document.createElement('tr');
             tr.innerHTML = `<td data-type="input" data-id=${expence.id}><input type="checkbox"></td>
                 <td data-field="category" data-type="text">${expence.category}</td><td data-field="summary" data-type="number">
                 ${expence.summary}</td><td date-field="date" data-type="date">${expence.date}</td>`;
             tbody.appendChild(tr);
-            // labelsExpances.push(expence.category);
-            // summariesExpances.push(Number(expence.summary));
-            expencess.push({ category: expence.category, summary: Number(expence.summary), date: expence.date });
+            expencesArr.push({ category: expence.category, summary: Number(expence.summary), date: expence.date });
         }
         );
-        // const myChart = new Chart(expenseCtx, {
-        //     type: 'doughnut',
-        //     data: {
-        //         labels: labelsExpances,
-        //         datasets: [{
-        //             label: 'Сумма',
-        //             data: summariesExpances,
-        //             backgroundColor: [
-        //                 'rgba(255, 99, 132, 0.2)',
-        //                 'rgba(54, 162, 235, 0.2)',
-        //                 'rgba(255, 206, 86, 0.2)',
-        //                 'rgba(75, 192, 192, 0.2)',
-        //                 'rgba(153, 102, 255, 0.2)',
-        //                 'rgba(255, 159, 64, 0.2)'
-        //             ],
-        //             // borderColor: [
-        //             //     'rgba(255, 99, 132, 1)',
-        //             //     'rgba(54, 162, 235, 1)',
-        //             //     'rgba(255, 206, 86, 1)',
-        //             //     'rgba(75, 192, 192, 1)',
-        //             //     'rgba(153, 102, 255, 1)',
-        //             //     'rgba(255, 159, 64, 1)'
-        //             // ],
-        //             borderWidth: 1
-        //         }]
-        //     },
-
-        // });
+        console.log('Данные загружены в таблицу расходов');
+    }
+    request.onerror = function () {
+        console.log('Не удалось загрузить данные в таблицу расходов', request.error);
     }
 }
 
-// function loadDiagrams(type) {
-//     let store = addTransaction(type);
-
-//     let request = store.getAll();
-
-//     request.onsuccess = function (event) {
-//         let datas = event.target.result;
-//         datas.forEach(data => {
-//             labelsIncome.push(data.category);
-//             summariesIncome.push(Number(data.summary));
-//         })
-//     }
-
-//     console.log(labelsIncome);
-//     console.log(summariesIncome);
-// }
-
-// function addTransaction(type, category, summary, date) {
-//     const storeName = type === "table-income" ? "incomes" : "expenses";
-//     const transaction = db.transaction([storeName], "readwrite");
-//     const store = transaction.objectStore(storeName);
-//     const newTransaction = {
-//         category: category,
-//         summary: summary,
-//         date: date
-//     };
-//     const addRequest = store.add(newTransaction);
-
-//     addRequest.onsuccess = () => {
-//         console.log(`Транзакция (${type}) успешно добавлена!`);
-//     };
-
-//     addRequest.onerror = (event) => {
-//         console.error(`Ошибка при добавлении транзакции (${type}):`, event.target.error);
-//     };
-// }
-
-
 function addTransaction(type) {
-    const storeName = type === "table-income" ? "incomes" : "expenses";
-    const transaction = db.transaction([storeName], "readwrite");
-    const store = transaction.objectStore(storeName);
+    let storeName = type === "table-income" ? "incomes" : "expenses";
+    let transaction = db.transaction([storeName], "readwrite");
+    let store = transaction.objectStore(storeName);
 
     return store;
-
-    // const addRequest = store.add(newTransaction);
-
-    // addRequest.onsuccess = () => {
-    //     console.log(`Транзакция (${type}) успешно добавлена!`);
-    // };
-
-    // addRequest.onerror = (event) => {
-    //     console.error(`Ошибка при добавлении транзакции (${type}):`, event.target.error);
-    // };
 }
-
-// function table(type) {
-//     let store = addTransaction(type);
-
-//     let datas = store.getAll();
-//     if (type === 'table-income' && data.length) {
-//         tableIncome.tBodies[0].innerHTML = datas.map(data => `<`)
-//     }
-// }
 
 function addData(type, category, summary, date) {
 
     let store = addTransaction(type);
 
-    const newTransaction = {
+    let newTransaction = {
         category: category,
         summary: summary,
         date: date
     }
 
-    const addRequest = store.add(newTransaction);
+    let addRequest = store.add(newTransaction);
 
     addRequest.onsuccess = () => {
         console.log(`Транзакция (${type}) успешно добавлена!`);
@@ -380,23 +230,10 @@ function addData(type, category, summary, date) {
     addRequest.onerror = (event) => {
         console.error(`Ошибка при добавлении транзакции (${type}):`, event.target.error);
     };
-
-    // if (type === 'table-income') {
-    //     loadIncome(type);
-
-    // } else {
-    //     loadExpences(type);
-    // };
 }
 
 function updateData(type, id, field, newValue) {
     let store = addTransaction(type);
-
-    // const newTransaction = {
-    //     category: category,
-    //     summary: summary,
-    //     date: date
-    // }
 
     let getReq = store.get(id);
     getReq.onsuccess = () => {
@@ -415,21 +252,12 @@ function updateData(type, id, field, newValue) {
             };
         }
     }
-    // const putRequest = store.put(newTransaction);
-
-    // putRequest.onsuccess = () => {
-    //     console.log(`Транзакция (${type}) успешно добавлена!`);
-    // };
-
-    // putRequest.onerror = (event) => {
-    //     console.error(`Ошибка при добавлении транзакции (${type}):`, event.target.error);
-    // };
 }
 
 function deleteData(type, id) {
     let store = addTransaction(type);
 
-    const putRequest = store.delete(id);
+    let putRequest = store.delete(id);
 
     putRequest.onsuccess = () => {
         console.log(`Транзакция (${type}) успешно удалена!`);
@@ -466,8 +294,8 @@ addBtnExpences.addEventListener('click', () => {
 
 masterCheckboxIncome.addEventListener('change', function () {
     targetTable = tableIncome;
-    const isChecked = this.checked;
-    const allCheckboxes = targetTable.tBodies[0].querySelectorAll('input[type="checkbox"]');
+    let isChecked = this.checked;
+    let allCheckboxes = targetTable.tBodies[0].querySelectorAll('input[type="checkbox"]');
     allCheckboxes.forEach(checkbox => {
         checkbox.checked = isChecked;
     });
@@ -475,8 +303,8 @@ masterCheckboxIncome.addEventListener('change', function () {
 
 masterCheckboxExpences.addEventListener('change', function () {
     targetTable = tableExpences;
-    const isChecked = this.checked;
-    const allCheckboxes = targetTable.tBodies[0].querySelectorAll('input[type="checkbox"]');
+    let isChecked = this.checked;
+    let allCheckboxes = targetTable.tBodies[0].querySelectorAll('input[type="checkbox"]');
     allCheckboxes.forEach(checkbox => {
         checkbox.checked = isChecked;
     });
@@ -487,7 +315,6 @@ deleteBtnIncome.addEventListener('click', () => {
     let rows = targetTable.querySelectorAll('tbody > tr');
 
     if (masterCheckboxIncome.checked) {
-        // console.log(checkboxes);
         let isDeleteAll = confirm('Вы точно хотите удалить всё?');
         if (isDeleteAll) {
             deleteAllData(targetTable.id);
@@ -516,7 +343,6 @@ deleteBtnExpenses.addEventListener('click', () => {
     let rows = targetTable.querySelectorAll('tbody > tr');
 
     if (masterCheckboxExpences.checked) {
-        // console.log(checkboxes);
         let isDeleteAll = confirm('Вы точно хотите удалить всё?');
         if (isDeleteAll) {
             deleteAllData(targetTable.id);
@@ -577,7 +403,7 @@ tableIncome.addEventListener('click', function (event) {
         let dataType = cell.dataset.type;
         let input = document.createElement('input');
         input.classList.add('edit__cell');
-        input.type = 'text'; // Всегда используйте type="text", а не dataType, для более гибкой обработки
+        input.type = 'text';
         input.value = originalValue;
         cell.innerText = '';
         cell.appendChild(input);
@@ -585,6 +411,11 @@ tableIncome.addEventListener('click', function (event) {
 
         function validateAndSave() {
             let newValue = input.value.trim();
+
+            if (originalValue === newValue) {
+                cell.innerHTML = newValue;
+                return;
+            }
 
             // Проверка валидности
             let isValid = true;
@@ -608,7 +439,7 @@ tableIncome.addEventListener('click', function (event) {
                 cell.innerHTML = newValue;
                 let field = cell.dataset.field;
                 let id = parseInt(cell.closest('tr').cells[0].dataset.id, 10);
-                updateData(tableIncome.id, id, field, newValue);
+                updateData('table-income', id, field, newValue);
             }
         }
 
@@ -623,35 +454,6 @@ tableIncome.addEventListener('click', function (event) {
 });
 
 tableExpences.addEventListener('click', function (event) {
-    // let cell = event.target;
-
-    // if (cell.tagName === 'TD' && !cell.querySelector('input')) {
-    //     let originalValue = cell.innerText;
-    //     let dataType = cell.dataset.type;
-
-    //     let input = document.createElement('input');
-    //     input.className = 'edit__cell';
-    //     input.type = dataType;
-    //     input.value = originalValue;
-
-    //     cell.innerText = '';
-    //     cell.appendChild(input);
-    //     input.focus();
-
-    //     input.addEventListener('blur', function () {
-    //         cell.innerHTML = input.value;
-    //         let field = cell.dataset.field;
-    //         let id = parseInt(cell.closest('tr').cells[0].dataset.id, 10);
-    //         console.log(id);
-
-    //         updateData(tableExpences.id, id, field, input.value);
-    //     });
-    //     input.addEventListener('keypress', function (e) {
-    //         if (e.key === 'Enter') {
-    //             input.blur();
-    //         }
-    //     })
-    // }
 
     let cell = event.target;
     if (cell.tagName === 'TD' && !cell.querySelector('input') && cell.dataset.type !== 'input') {
@@ -659,7 +461,7 @@ tableExpences.addEventListener('click', function (event) {
         let dataType = cell.dataset.type;
         let input = document.createElement('input');
         input.classList.add('edit__cell');
-        input.type = 'text'; // Всегда используйте type="text", а не dataType, для более гибкой обработки
+        input.type = 'text';
         input.value = originalValue;
         cell.innerText = '';
         cell.appendChild(input);
@@ -687,6 +489,10 @@ tableExpences.addEventListener('click', function (event) {
             }
 
             if (isValid) {
+                if (originalValue === newValue) {
+                    cell.innerHTML = newValue;
+                    return;
+                }
                 cell.innerHTML = newValue;
                 let field = cell.dataset.field;
                 let id = parseInt(cell.closest('tr').cells[0].dataset.id, 10);
@@ -704,29 +510,12 @@ tableExpences.addEventListener('click', function (event) {
     }
 });
 
-function filterByDate(data, start, end) {
-    return data.filter(item => {
-        const date = new Date(item.date);
-        return (!start || date >= start) && (!end || date <= end);
-    });
-}
-
-function aggregateByCategory(data) {
-    const result = {};
-    data.forEach(item => {
-        if (!result[item.category]) result[item.category] = 0;
-        result[item.category] += item.summary;
-    });
-    return result;
-}
-
 let incomeChart = new Chart(incomeCtx, {
     type: 'doughnut',
     data: { labels: [], datasets: [{ label: 'Доходы', data: [], hoverOffset: 4 }] },
     options: {
         elements: {
             center: {
-                text: `Всего ${totalSumIncome} рублей`,
                 color: '#FF6384', // Default is #000000
                 fontStyle: 'Arial', // Default is Arial
                 sidePadding: 20, // Default is 20 (as a percentage)
@@ -761,7 +550,7 @@ let incomeChart = new Chart(incomeCtx, {
                 },
                 color: '#fff',
                 font: {
-                    size: 14,
+                    size: 12,
                 }
             }
         }
@@ -775,7 +564,6 @@ let expenseChart = new Chart(expenseCtx, {
     options: {
         elements: {
             center: {
-                text: `Всего ${totalSumExpences} рублей`,
                 color: '#FF6384', // Default is #000000
                 fontStyle: 'Arial', // Default is Arial
                 sidePadding: 20, // Default is 20 (as a percentage)
@@ -810,7 +598,7 @@ let expenseChart = new Chart(expenseCtx, {
                 },
                 color: '#fff',
                 font: {
-                    size: 14,
+                    size: 12,
                 }
             }
         }
@@ -818,20 +606,35 @@ let expenseChart = new Chart(expenseCtx, {
     plugins: [ChartDataLabels]
 });
 
+function filterByDate(data, start, end) {
+    return data.filter(item => {
+        let date = new Date(item.date);
+        return (!start || date >= start) && (!end || date <= end);
+    });
+}
+
+function aggregateByCategory(data) {
+    let result = {};
+    data.forEach(item => {
+        if (!result[item.category]) result[item.category] = 0;
+        result[item.category] += item.summary;
+    });
+    return result;
+}
 
 function updateCharts() {
 
-    const startDate = document.getElementById('startDate').value ? new Date(document.getElementById('startDate').value) : null;
-    const endDate = document.getElementById('endDate').value ? new Date(document.getElementById('endDate').value) : null;
+    let startDate = document.getElementById('startDate').value ? new Date(document.getElementById('startDate').value) : null;
+    let endDate = document.getElementById('endDate').value ? new Date(document.getElementById('endDate').value) : null;
 
-    const filteredIncomes = filterByDate(incomess, startDate, endDate);
-    const filteredExpenses = filterByDate(expencess, startDate, endDate);
+    let filteredIncomes = filterByDate(incomesArr, startDate, endDate);
+    let filteredExpenses = filterByDate(expencesArr, startDate, endDate);
 
-    const incomeData = aggregateByCategory(filteredIncomes);
-    const expenseData = aggregateByCategory(filteredExpenses);
+    let incomeData = aggregateByCategory(filteredIncomes);
+    let expenseData = aggregateByCategory(filteredExpenses);
 
-    const totalIncome = filteredIncomes.reduce((sum, i) => sum + i.summary, 0);
-    const totalExpenses = filteredExpenses.reduce((sum, e) => sum + e.summary, 0);
+    let totalIncome = filteredIncomes.reduce((sum, i) => sum + i.summary, 0);
+    let totalExpences = filteredExpenses.reduce((sum, e) => sum + e.summary, 0);
 
     incomeChart.data.labels = Object.keys(incomeData);
     incomeChart.data.datasets[0].data = Object.values(incomeData);
@@ -840,7 +643,7 @@ function updateCharts() {
     expenseChart.data.datasets[0].data = Object.values(expenseData);
 
     incomeChart.options.elements.center.text = `Всего\n${totalIncome} ₽`;
-    expenseChart.options.elements.center.text = `Всего\n${totalExpenses} ₽`;
+    expenseChart.options.elements.center.text = `Всего\n${totalExpences} ₽`;
 
     incomeChart.update();
     expenseChart.update();
