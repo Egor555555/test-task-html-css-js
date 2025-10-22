@@ -21,22 +21,35 @@
                 <div class="button-group">
                     <button id="add-btn" type="button" data-table="income">Добавить</button>
                     <button id="delete-btn" type="button" data-table="income">Удалить</button>
-                    <!-- <button id="update-btn" type="button" data-table="income">Обновить</button> -->
                 </div>
             </div>
-            <table id="table-income" data-store="incomes">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" id="master-checkbox-income"></th>
-                        <th>Категория</th>
-                        <th>Сумма</th>
-                        <th>Дата</th>
-                    </tr>
-                </thead>
-                <tbody>
+            <!-- <div class="scroll-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="master-checkbox-income"></th>
+                            <th>Категория</th>
+                            <th>Сумма</th>
+                            <th>Дата</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div> -->
+            <div class="table-scroll">
+                <table id="table-income" data-store="incomes">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="master-checkbox-income"></th>
+                            <th>Категория</th>
+                            <th>Сумма</th>
+                            <th>Дата</th>
+                        </tr>
+                    </thead>
+                    <tbody>
 
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
         <div class="table-container">
             <div class="header-container">
@@ -44,33 +57,25 @@
                 <div class="button-group">
                     <button id="add-btn" type="button" data-table="expences">Добавить</button>
                     <button id="delete-btn" type="button" data-table="expences">Удалить</button>
-                    <!-- <button id="update-btn" type="button" data-table="expences">Обновить</button> -->
                 </div>
             </div>
-            <table id="table-expenses" data-store="expences">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" id="master-checkbox-expences"></th>
-                        <th>Категория</th>
-                        <th>Сумма</th>
-                        <th>Дата</th>
-                    </tr>
-                </thead>
-                <tbody>
+            <div class="table-scroll">
+                <table id="table-expenses" data-store="expences">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="master-checkbox-expences"></th>
+                            <th>Категория</th>
+                            <th>Сумма</th>
+                            <th>Дата</th>
+                        </tr>
+                    </thead>
+                    <tbody>
 
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-    <!-- <div id="main" style="width: 600px;height:400px;">
-    </div>
-    <div class="show__diagrams__container">
-        <label for="date-select">Выберите промежуток</label>
-        <select name="dates" id="date-select">
-        </select>
-        <button type="button" id="showDiagrams-btn">Показать диаграммы</button>
-    </div> -->
-    <!-- <canvas id="myChart"></canvas> -->
     <div class="interval__container">
         <label>Дата с: <input type="date" id="startDate"></label>
         <label>по: <input type="date" id="endDate"></label>
@@ -110,7 +115,6 @@
             </div>
         </div>
     </div>
-    <!-- <script src="echarts.min.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors"></script>
