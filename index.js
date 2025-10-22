@@ -1,89 +1,81 @@
 // import autocolors from 'chartjs-plugin-autocolors';
 
-// Chart.register({
-//     id: 'doughnut-centertext',
-//     beforeDraw: function (chart) {
-//         if (chart.config.options.elements.center) {
-//             // Get ctx from string
-//             var ctx = chart.ctx;
+Chart.register({
+    id: 'doughnut-centertext',
+    beforeDraw: function (chart) {
+        const centerConfig = chart.config.options.elements?.center;
+        if (!centerConfig) return; // нет настроек — ничего не рисуем
 
-//             // Get options from the center object in options
-//             var centerConfig = chart.config.options.elements.center;
-//             var fontStyle = centerConfig.fontStyle || 'Arial';
-//             var txt = centerConfig.text;
-//             var color = centerConfig.color || '#000';
-//             var maxFontSize = centerConfig.maxFontSize || 75;
-//             var sidePadding = centerConfig.sidePadding || 20;
-//             var sidePaddingCalculated = (sidePadding / 100) * (chart._metasets[chart._metasets.length - 1].data[0].innerRadius * 2)
-//             // Start with a base font of 30px
-//             ctx.font = "30px " + fontStyle;
+        const metasets = chart._metasets;
+        // Проверяем, есть ли вообще данные
+        if (!metasets || metasets.length === 0 || !metasets[metasets.length - 1].data.length) return;
 
-//             // Get the width of the string and also the width of the element minus 10 to give it 5px side padding
-//             var stringWidth = ctx.measureText(txt).width;
-//             var elementWidth = (chart._metasets[chart._metasets.length - 1].data[0].innerRadius * 2) - sidePaddingCalculated;
+        const ctx = chart.ctx;
+        const fontStyle = centerConfig.fontStyle || 'Arial';
+        const txt = centerConfig.text || '';
+        const color = centerConfig.color || '#000';
+        const maxFontSize = centerConfig.maxFontSize || 75;
+        const sidePadding = centerConfig.sidePadding || 20;
+        const sidePaddingCalculated =
+            (sidePadding / 100) *
+            (metasets[metasets.length - 1].data[0].innerRadius * 2);
 
-//             // Find out how much the font can grow in width.
-//             var widthRatio = elementWidth / stringWidth;
-//             var newFontSize = Math.floor(30 * widthRatio);
-//             var elementHeight = (chart._metasets[chart._metasets.length - 1].data[0].innerRadius * 2);
+        ctx.font = "30px " + fontStyle;
 
-//             // Pick a new font size so it will not be larger than the height of label.
-//             var fontSizeToUse = Math.min(newFontSize, elementHeight, maxFontSize);
-//             var minFontSize = centerConfig.minFontSize;
-//             var lineHeight = centerConfig.lineHeight || 25;
-//             var wrapText = false;
+        const stringWidth = ctx.measureText(txt).width;
+        const elementWidth =
+            (metasets[metasets.length - 1].data[0].innerRadius * 2) - sidePaddingCalculated;
+        const widthRatio = elementWidth / stringWidth;
+        const newFontSize = Math.floor(30 * widthRatio);
+        const elementHeight =
+            (metasets[metasets.length - 1].data[0].innerRadius * 2);
 
-//             if (minFontSize === undefined) {
-//                 minFontSize = 20;
-//             }
+        const fontSizeToUse = Math.min(newFontSize, elementHeight, maxFontSize);
+        const minFontSize = centerConfig.minFontSize || 20;
+        const lineHeight = centerConfig.lineHeight || 25;
+        let wrapText = false;
 
-//             if (minFontSize && fontSizeToUse < minFontSize) {
-//                 fontSizeToUse = minFontSize;
-//                 wrapText = true;
-//             }
+        if (fontSizeToUse < minFontSize) {
+            wrapText = true;
+        }
 
-//             // Set font settings to draw it correctly.
-//             ctx.textAlign = 'center';
-//             ctx.textBaseline = 'middle';
-//             var centerX = ((chart.chartArea.left + chart.chartArea.right) / 2);
-//             var centerY = ((chart.chartArea.top + chart.chartArea.bottom) / 2);
-//             ctx.font = fontSizeToUse + "px " + fontStyle;
-//             ctx.fillStyle = color;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
+        const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
+        ctx.font = fontSizeToUse + "px " + fontStyle;
+        ctx.fillStyle = color;
 
-//             if (!wrapText) {
-//                 ctx.fillText(txt, centerX, centerY);
-//                 return;
-//             }
+        if (!wrapText) {
+            ctx.fillText(txt, centerX, centerY);
+            return;
+        }
 
-//             var words = txt.split(' ');
-//             var line = '';
-//             var lines = [];
+        // Перенос текста
+        const words = txt.split(' ');
+        let line = '';
+        const lines = [];
 
-//             // Break words up into multiple lines if necessary
-//             for (var n = 0; n < words.length; n++) {
-//                 var testLine = line + words[n] + ' ';
-//                 var metrics = ctx.measureText(testLine);
-//                 var testWidth = metrics.width;
-//                 if (testWidth > elementWidth && n > 0) {
-//                     lines.push(line);
-//                     line = words[n] + ' ';
-//                 } else {
-//                     line = testLine;
-//                 }
-//             }
+        for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const testWidth = ctx.measureText(testLine).width;
+            if (testWidth > elementWidth && n > 0) {
+                lines.push(line);
+                line = words[n] + ' ';
+            } else {
+                line = testLine;
+            }
+        }
 
-//             // Move the center up depending on line height and number of lines
-//             centerY -= (lines.length / 2) * lineHeight;
+        let y = centerY - (lines.length / 2) * lineHeight;
+        for (let n = 0; n < lines.length; n++) {
+            ctx.fillText(lines[n], centerX, y);
+            y += lineHeight;
+        }
+        ctx.fillText(line, centerX, y);
+    }
+});
 
-//             for (var n = 0; n < lines.length; n++) {
-//                 ctx.fillText(lines[n], centerX, centerY);
-//                 centerY += lineHeight;
-//             }
-//             //Draw text in center
-//             ctx.fillText(line, centerX, centerY);
-//         }
-//     }
-// });
 Chart.register(window['chartjs-plugin-autocolors']);
 
 const autocolors = window['chartjs-plugin-autocolors'];
@@ -170,7 +162,7 @@ request.onerror = function (event) {
 
 function loadIncome(type) {
     incomess = [];
-    totalSum = 0;
+    totalSumIncome = 0;
     let store = addTransaction(type);
 
     let request = store.getAll();
@@ -189,7 +181,7 @@ function loadIncome(type) {
             // summariesIncome.push(Number(income.summary));
             // dateIncome.push(income.date);
             incomess.push({ category: income.category, summary: Number(income.summary), date: income.date });
-            totalSum += income.summary;
+            totalSumIncome += Number(income.summary);
         });
         // const myChart = new Chart(incomeCtx, {
         //     // plugins: [
@@ -250,7 +242,6 @@ function loadIncome(type) {
 
 function loadExpences(type) {
     expencess = [];
-    totalSumExpences = 0;
 
     let store = addTransaction(type);
 
@@ -269,8 +260,8 @@ function loadExpences(type) {
             // labelsExpances.push(expence.category);
             // summariesExpances.push(Number(expence.summary));
             expencess.push({ category: expence.category, summary: Number(expence.summary), date: expence.date });
-            totalSumExpences += expence.summary;
-        });
+        }
+        );
         // const myChart = new Chart(expenseCtx, {
         //     type: 'doughnut',
         //     data: {
@@ -735,7 +726,7 @@ let incomeChart = new Chart(incomeCtx, {
     options: {
         elements: {
             center: {
-                text: 'Red is 2/3 of the total numbers',
+                text: `Всего ${totalSumIncome} рублей`,
                 color: '#FF6384', // Default is #000000
                 fontStyle: 'Arial', // Default is Arial
                 sidePadding: 20, // Default is 20 (as a percentage)
@@ -784,7 +775,7 @@ let expenseChart = new Chart(expenseCtx, {
     options: {
         elements: {
             center: {
-                text: `Всего ${totalSumExpences}`,
+                text: `Всего ${totalSumExpences} рублей`,
                 color: '#FF6384', // Default is #000000
                 fontStyle: 'Arial', // Default is Arial
                 sidePadding: 20, // Default is 20 (as a percentage)
@@ -839,11 +830,18 @@ function updateCharts() {
     const incomeData = aggregateByCategory(filteredIncomes);
     const expenseData = aggregateByCategory(filteredExpenses);
 
+    const totalIncome = filteredIncomes.reduce((sum, i) => sum + i.summary, 0);
+    const totalExpenses = filteredExpenses.reduce((sum, e) => sum + e.summary, 0);
+
     incomeChart.data.labels = Object.keys(incomeData);
     incomeChart.data.datasets[0].data = Object.values(incomeData);
-    incomeChart.update();
 
     expenseChart.data.labels = Object.keys(expenseData);
     expenseChart.data.datasets[0].data = Object.values(expenseData);
+
+    incomeChart.options.elements.center.text = `Всего\n${totalIncome} ₽`;
+    expenseChart.options.elements.center.text = `Всего\n${totalExpenses} ₽`;
+
+    incomeChart.update();
     expenseChart.update();
 }
